@@ -2,8 +2,8 @@ import React from 'react';
 import { IntercomMetrics } from '../types/intercom';
 import { mockIntercomData } from '../data/mockData';
 
-// Configuration de l'API Intercom
-const INTERCOM_API_BASE = 'https://api.intercom.io';
+// Configuration de l'API Intercom via proxy local
+const INTERCOM_API_BASE = 'http://localhost:3001/api/intercom';
 const INTERCOM_ACCESS_TOKEN = process.env.REACT_APP_INTERCOM_ACCESS_TOKEN;
 
 class IntercomService {
@@ -60,6 +60,118 @@ class IntercomService {
     return this.apiCall(`/conversations?${queryParams.toString()}`);
   }
 
+  // Récupérer le nombre de nouvelles conversations créées entre deux dates
+  async getNewConversationsCount(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  } = {}): Promise<number> {
+    try {
+      const params: any = {
+        per_page: 1 // On ne récupère qu'une conversation pour avoir le total_count
+      };
+
+      // Ajouter les filtres de date si fournis
+      if (filters.startDate) {
+        params.created_at_after = Math.floor(new Date(filters.startDate).getTime() / 1000);
+      }
+      if (filters.endDate) {
+        // Ajouter 24h pour inclure toute la journée de fin
+        const endDate = new Date(filters.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        params.created_at_before = Math.floor(endDate.getTime() / 1000);
+      }
+
+      const response = await this.getConversations(params);
+      
+      // Si pas de filtre par agent, on peut utiliser directement total_count
+      if (!filters.selectedAgent || filters.selectedAgent === '') {
+        return response.total_count || 0;
+      }
+
+      // Si filtre par agent, on doit récupérer toutes les conversations pour filtrer
+      const allParams = { ...params };
+      delete allParams.per_page;
+      
+      const allResponse = await this.getConversations(allParams);
+      let conversations = allResponse.conversations || [];
+
+      // Récupérer les admins pour faire le mapping nom -> ID
+      const admins = await this.getAdmins();
+      const selectedAdmin = admins.admins?.find((admin: any) => 
+        admin.name === filters.selectedAgent
+      );
+      
+      if (selectedAdmin) {
+        conversations = conversations.filter((conv: any) => 
+          conv.assignee?.id === selectedAdmin.id
+        );
+      }
+
+      return conversations.length;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des nouvelles conversations:', error);
+      return 0;
+    }
+  }
+
+  // Récupérer le nombre de conversations ouvertes avec filtres
+  async getOpenConversationsCount(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  } = {}): Promise<number> {
+    try {
+      const params: any = {
+        state: 'open',
+        per_page: 1 // On ne récupère qu'une conversation pour avoir le total_count
+      };
+
+      // Ajouter les filtres de date si fournis
+      if (filters.startDate) {
+        params.created_at_after = Math.floor(new Date(filters.startDate).getTime() / 1000);
+      }
+      if (filters.endDate) {
+        // Ajouter 24h pour inclure toute la journée de fin
+        const endDate = new Date(filters.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        params.created_at_before = Math.floor(endDate.getTime() / 1000);
+      }
+
+      const response = await this.getConversations(params);
+      
+      // Si pas de filtre par agent, on peut utiliser directement total_count
+      if (!filters.selectedAgent || filters.selectedAgent === '') {
+        return response.total_count || 0;
+      }
+
+      // Si filtre par agent, on doit récupérer toutes les conversations pour filtrer
+      // (limitation de l'API Intercom qui ne permet pas de filtrer par assignee directement)
+      const allParams = { ...params };
+      delete allParams.per_page; // Récupérer toutes les conversations
+      
+      const allResponse = await this.getConversations(allParams);
+      let conversations = allResponse.conversations || [];
+
+      // Récupérer les admins pour faire le mapping nom -> ID
+      const admins = await this.getAdmins();
+      const selectedAdmin = admins.admins?.find((admin: any) => 
+        admin.name === filters.selectedAgent
+      );
+      
+      if (selectedAdmin) {
+        conversations = conversations.filter((conv: any) => 
+          conv.assignee?.id === selectedAdmin.id
+        );
+      }
+
+      return conversations.length;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des conversations ouvertes:', error);
+      return 0;
+    }
+  }
+
   // Récupérer les admins (agents)
   async getAdmins() {
     return this.apiCall('/admins');
@@ -79,21 +191,26 @@ class IntercomService {
     return this.apiCall(`/conversations/stats?${queryParams.toString()}`);
   }
 
-  // Méthode principale pour récupérer toutes les métriques
-  async getMetrics(): Promise<IntercomMetrics> {
+  // Méthode principale pour récupérer toutes les métriques avec filtres
+  async getMetrics(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  } = {}): Promise<IntercomMetrics> {
     try {
-      // Pour le moment, on utilise les données mockées
-      // TODO: Implémenter les vraies requêtes API
+      // Récupérer les données réelles de l'API
+      const openConversationsCount = await this.getOpenConversationsCount(filters);
+      const newConversationsCount = await this.getNewConversationsCount(filters);
       
-      // const today = new Date().toISOString().split('T')[0];
-      // const conversations = await this.getConversations();
-      // const admins = await this.getAdmins();
-      // const stats = await this.getConversationStats({ type: 'admin' });
+      // Pour les autres métriques, on garde les données mockées pour l'instant
+      // et on remplace les données réelles
+      const realMetrics: IntercomMetrics = {
+        ...mockIntercomData,
+        openTickets: openConversationsCount,
+        newTickets: newConversationsCount
+      };
 
-      // Transformation des données API en format IntercomMetrics
-      // return this.transformApiDataToMetrics(conversations, admins, stats);
-
-      return mockIntercomData;
+      return realMetrics;
     } catch (error) {
       console.error('Erreur lors de la récupération des métriques:', error);
       // En cas d'erreur, retourner les données mockées
@@ -125,8 +242,12 @@ class IntercomService {
 // Instance singleton du service
 export const intercomService = new IntercomService();
 
-// Hook React pour utiliser le service
-export const useIntercomData = () => {
+// Hook React pour utiliser le service avec filtres
+export const useIntercomData = (filters: {
+  startDate?: string;
+  endDate?: string;
+  selectedAgent?: string;
+} = {}) => {
   const [data, setData] = React.useState<IntercomMetrics | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -135,7 +256,7 @@ export const useIntercomData = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const metrics = await intercomService.getMetrics();
+        const metrics = await intercomService.getMetrics(filters);
         setData(metrics);
         setError(null);
       } catch (err) {
@@ -146,23 +267,24 @@ export const useIntercomData = () => {
     };
 
     fetchData();
-  }, []);
+  }, [filters.startDate, filters.endDate, filters.selectedAgent]);
 
-  const refetch = async () => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const metrics = await intercomService.getMetrics();
-        setData(metrics);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erreur inconnue');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    await fetchData();
+  const refetch = async (newFilters?: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  }) => {
+    const filtersToUse = newFilters || filters;
+    try {
+      setLoading(true);
+      const metrics = await intercomService.getMetrics(filtersToUse);
+      setData(metrics);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return { data, loading, error, refetch };

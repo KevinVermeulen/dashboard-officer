@@ -2,15 +2,13 @@ import React, { useState } from 'react';
 import StatCard from './StatCard';
 import { mockIntercomData, getStatCards } from '../data/mockData';
 import { IntercomMetrics } from '../types/intercom';
+import { useIntercomData } from '../services/intercomService';
 
 interface DashboardProps {
   activeSection: string;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
-  const data: IntercomMetrics = mockIntercomData;
-  const statCards = getStatCards(data);
-
   // Get yesterday's date as default
   const getYesterday = () => {
     const yesterday = new Date();
@@ -22,16 +20,27 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
   const [startDate, setStartDate] = useState(getYesterday());
   const [endDate, setEndDate] = useState(getYesterday());
   const [selectedAgent, setSelectedAgent] = useState('');
+  
+  // Use the hook to get real data with filters
+  const { data, loading, error, refetch } = useIntercomData({
+    startDate,
+    endDate,
+    selectedAgent
+  });
 
-  // Get unique agents from data
+  // Fallback to mock data if no real data
+  const displayData: IntercomMetrics = data || mockIntercomData;
+  const statCards = getStatCards(displayData);
+
+  // Get unique agents from data (filter out 'X' values)
   const agents = Array.from(new Set([
-    ...data.ticketsByAgent.map(agent => agent.agentName),
-    ...data.workloadByAgent.map(agent => agent.agentName)
-  ]));
+    ...displayData.ticketsByAgent.map(agent => agent.agentName),
+    ...displayData.workloadByAgent.map(agent => agent.agentName)
+  ])).filter(agent => agent !== 'X');
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     console.log('Filters applied:', { startDate, endDate, selectedAgent });
-    // Here we would normally call an API with the filters
+    await refetch({ startDate, endDate, selectedAgent });
   };
 
   if (activeSection === 'ai') {
@@ -93,21 +102,21 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
                 <div>
                   <span className="block text-sm text-gray-600">Résolution FIN AI seul</span>
-                  <span className="text-2xl font-bold text-green-600">{data.ai.finAIOnlyResolution}%</span>
+                  <span className="text-2xl font-bold text-green-600">{displayData.ai.finAIOnlyResolution}%</span>
                 </div>
                 <div className="text-4xl">🤖</div>
               </div>
               <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
                 <div>
                   <span className="block text-sm text-gray-600">FIN AI + Humain</span>
-                  <span className="text-2xl font-bold text-blue-600">{data.ai.finAIHumanResolution}%</span>
+                  <span className="text-2xl font-bold text-blue-600">{displayData.ai.finAIHumanResolution}%</span>
                 </div>
                 <div className="text-4xl">🤝</div>
               </div>
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <div className="text-sm text-gray-600 mb-2">Taux d'automatisation total</div>
                 <div className="text-lg font-semibold text-purple-600">
-                  {(data.ai.finAIOnlyResolution + data.ai.finAIHumanResolution).toFixed(1)}%
+                  {(displayData.ai.finAIOnlyResolution + displayData.ai.finAIHumanResolution).toFixed(1)}%
                 </div>
               </div>
             </div>
@@ -120,7 +129,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-4 bg-red-50 rounded-lg">
                 <div>
                   <span className="block text-sm text-gray-600">Tickets mal documentés</span>
-                  <span className="text-2xl font-bold text-red-600">{data.ai.poorlyDocumentedTickets}</span>
+                  <span className="text-2xl font-bold text-red-600">{displayData.ai.poorlyDocumentedTickets}</span>
                 </div>
                 <div className="text-4xl">📋</div>
               </div>
@@ -651,12 +660,14 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
           {/* Submit Button */}
           <button
             onClick={handleSubmit}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-semibold"
+            disabled={loading}
+            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Appliquer
+            {loading ? 'Chargement...' : 'Appliquer'}
           </button>
         </div>
       </div>
+
 
       {/* Stats Cards Grid */}
       <div className="flex flex-wrap gap-6 mb-12 px-2 space-x-2">
@@ -673,7 +684,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Tickets par Agent (Aujourd'hui)</h3>
           <div className="space-y-3">
-            {data.ticketsByAgent.map((agent, index) => (
+            {displayData.ticketsByAgent.map((agent, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-700">{agent.agentName}</span>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
@@ -688,7 +699,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Charge de Travail (Tickets Actifs)</h3>
           <div className="space-y-3">
-            {data.workloadByAgent.map((agent, index) => (
+            {displayData.workloadByAgent.map((agent, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-700">{agent.agentName}</span>
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
@@ -709,7 +720,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Volume par Pack</h3>
           <div className="space-y-3">
-            {data.ticketsByPack.map((pack, index) => (
+            {displayData.ticketsByPack.map((pack, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-700">{pack.packName}</span>
                 <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
@@ -724,7 +735,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Volume par Heure</h3>
           <div className="space-y-2">
-            {data.hourlyVolume.map((hour, index) => (
+            {displayData.hourlyVolume.map((hour, index) => (
               <div key={index} className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">{hour.hour}</span>
                 <div className="flex items-center space-x-2">
@@ -745,7 +756,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Volume 30j Post-Onboarding</h3>
           <div className="space-y-3">
-            {data.postOnboardingVolume.map((period, index) => (
+            {displayData.postOnboardingVolume.map((period, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-700">{period.period}</span>
                 <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-semibold">
@@ -757,7 +768,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
           <div className="mt-4 p-3 bg-blue-50 rounded-lg">
             <div className="text-sm text-gray-600 mb-1">Total sur 30 jours</div>
             <div className="text-lg font-semibold text-blue-600">
-              {data.postOnboardingVolume.reduce((sum, period) => sum + period.ticketCount, 0)} tickets
+              {displayData.postOnboardingVolume.reduce((sum, period) => sum + period.ticketCount, 0)} tickets
             </div>
           </div>
         </div>
@@ -766,7 +777,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Repeat Customers (Top 10)</h3>
           <div className="space-y-3">
-            {data.repeatCustomers.map((customer, index) => (
+            {displayData.repeatCustomers.map((customer, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex-1">
                   <span className="font-medium text-gray-700 block">{customer.customerName}</span>

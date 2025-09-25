@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Intercom API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .loading {
+            color: #007bff;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .json-output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .filters input, .filters select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Debug Intercom API</h1>
+    
+    <div class="container">
+        <h2>Configuration API</h2>
+        <p><strong>API Key:</strong> b12eea6d-6410-45f0-ac16-7bfeb2513c18</p>
+        <p><strong>Base URL:</strong> https://api.intercom.io</p>
+        <p><strong>Region:</strong> Europe</p>
+    </div>
+
+    <div class="container">
+        <h2>Tests de Connexion</h2>
+        <button class="button" onclick="testConnection()">🔗 Test Connexion (/me)</button>
+        <button class="button" onclick="getAdmins()">👥 Récupérer Admins</button>
+        <button class="button" onclick="getAllConversations()">💬 Toutes les Conversations</button>
+        <button class="button" onclick="getOpenConversations()">📋 Conversations Ouvertes</button>
+        
+        <div class="filters">
+            <label>Date début:</label>
+            <input type="date" id="startDate" value="">
+            <label>Date fin:</label>
+            <input type="date" id="endDate" value="">
+            <select id="agentSelect">
+                <option value="">Tous les agents</option>
+            </select>
+            <button class="button" onclick="getFilteredConversations()">🔍 Recherche Filtrée</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Résultats</h2>
+        <div id="status"></div>
+        <div id="results" class="json-output"></div>
+    </div>
+
+    <script>
+        const API_KEY = 'dG9rOjJjYTg5ZjVhXzZhYzNfNDBlY185MjE1Xzc3Yjc1NDc2NzlmZjoxOjA6ZXUtd2VzdC0x';
+        const CLIENT_ID = 'bf139bdb-e8b2-4bb9-b44d-e8a4ab32b678';
+        const BASE_URL = 'http://localhost:3001/api/intercom';
+
+        // Set default dates (yesterday)
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        document.getElementById('startDate').value = yesterday.toISOString().split('T')[0];
+        document.getElementById('endDate').value = yesterday.toISOString().split('T')[0];
+
+        function setStatus(message, type = 'loading') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = type;
+            statusDiv.innerHTML = message;
+        }
+
+        function setResults(data) {
+            document.getElementById('results').textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function makeApiCall(endpoint, params = {}) {
+            const url = new URL(`${BASE_URL}${endpoint}`);
+            Object.keys(params).forEach(key => {
+                if (params[key]) url.searchParams.append(key, params[key]);
+            });
+
+            console.log('Making API call to:', url.toString());
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${API_KEY}`,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status} ${response.statusText} - ${JSON.stringify(data)}`);
+                }
+
+                return data;
+            } catch (error) {
+                console.error('API call failed:', error);
+                throw error;
+            }
+        }
+
+        async function testConnection() {
+            setStatus('🔄 Test de connexion en cours...', 'loading');
+            try {
+                const data = await makeApiCall('/me');
+                setStatus('✅ Connexion réussie !', 'success');
+                setResults(data);
+            } catch (error) {
+                setStatus(`❌ Erreur de connexion: ${error.message}`, 'error');
+                setResults({ error: error.message, stack: error.stack });
+            }
+        }
+
+        async function getAdmins() {
+            setStatus('🔄 Récupération des admins...', 'loading');
+            try {
+                const data = await makeApiCall('/admins');
+                setStatus(`✅ ${data.admins?.length || 0} admins trouvés`, 'success');
+                setResults(data);
+                
+                // Populate agent select
+                const select = document.getElementById('agentSelect');
+                select.innerHTML = '<option value="">Tous les agents</option>';
+                if (data.admins) {
+                    data.admins.forEach(admin => {
+                        const option = document.createElement('option');
+                        option.value = admin.name;
+                        option.textContent = admin.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                setStatus(`❌ Erreur: ${error.message}`, 'error');
+                setResults({ error: error.message });
+            }
+        }
+
+        async function getAllConversations() {
+            setStatus('🔄 Récupération de toutes les conversations...', 'loading');
+            try {
+                const data = await makeApiCall('/conversations');
+                const count = data.conversations?.length || 0;
+                setStatus(`✅ ${count} conversations trouvées`, 'success');
+                setResults(data);
+            } catch (error) {
+                setStatus(`❌ Erreur: ${error.message}`, 'error');
+                setResults({ error: error.message });
+            }
+        }
+
+        async function getOpenConversations() {
+            setStatus('🔄 Récupération des conversations ouvertes...', 'loading');
+            try {
+                const data = await makeApiCall('/conversations', { state: 'open' });
+                const count = data.conversations?.length || 0;
+                setStatus(`✅ ${count} conversations ouvertes trouvées`, 'success');
+                setResults(data);
+            } catch (error) {
+                setStatus(`❌ Erreur: ${error.message}`, 'error');
+                setResults({ error: error.message });
+            }
+        }
+
+        async function getFilteredConversations() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const selectedAgent = document.getElementById('agentSelect').value;
+
+            setStatus('🔄 Recherche avec filtres...', 'loading');
+            
+            try {
+                const params = { state: 'open' };
+                
+                if (startDate) {
+                    params.created_at_after = Math.floor(new Date(startDate).getTime() / 1000);
+                }
+                if (endDate) {
+                    const endDateTime = new Date(endDate);
+                    endDateTime.setHours(23, 59, 59, 999);
+                    params.created_at_before = Math.floor(endDateTime.getTime() / 1000);
+                }
+
+                console.log('Filtres appliqués:', params);
+                
+                const data = await makeApiCall('/conversations', params);
+                let conversations = data.conversations || [];
+                
+                // Filter by agent if specified
+                if (selectedAgent) {
+                    // First get admins to map names to IDs
+                    const adminsData = await makeApiCall('/admins');
+                    const selectedAdmin = adminsData.admins?.find(admin => admin.name === selectedAgent);
+                    
+                    if (selectedAdmin) {
+                        conversations = conversations.filter(conv => 
+                            conv.assignee?.id === selectedAdmin.id
+                        );
+                    }
+                }
+
+                const count = conversations.length;
+                setStatus(`✅ ${count} conversations trouvées avec les filtres`, 'success');
+                setResults({
+                    filters: { startDate, endDate, selectedAgent },
+                    count: count,
+                    conversations: conversations
+                });
+            } catch (error) {
+                setStatus(`❌ Erreur: ${error.message}`, 'error');
+                setResults({ error: error.message });
+            }
+        }
+
+        // Auto-test connection on load
+        window.onload = function() {
+            console.log('Page chargée, test de connexion automatique...');
+            testConnection();
+        };
+    </script>
+</body>
+</html>
