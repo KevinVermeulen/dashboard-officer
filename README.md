@@ -1,46 +1,88 @@
-# Getting Started with Create React App
+# Dashboard Inter Officer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Dashboard pour analyser et visualiser les métriques Intercom.
 
-## Available Scripts
+## Fonctionnalités
 
-In the project directory, you can run:
+- **Dashboard Général** : Vue d'ensemble des métriques Intercom
+  - Nombre de nouveaux tickets/discussions créés
+  - Nombre de tickets ouverts en fin de journée
+  - Nombre de tickets fermés/rouverts
+  - Tickets par agent par jour
+  - Charge de travail par agent (tickets actifs assignés)
+  - Pourcentage de tickets Intercom envoyés vers Jira
+  - Volume de tickets par pack (Pro/Pro+/Expert/Expert+)
+  - Volume par heure/jour (peak hours)
+  - Âge du backlog (plus vieux ticket non résolu)
 
-### `npm start`
+## Technologies
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- **Frontend** : React 18 avec TypeScript
+- **Styling** : Tailwind CSS
+- **API** : Service Intercom intégré
+- **Build** : Create React App
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Installation
 
-### `npm test`
+1. Clonez le repository
+2. Installez les dépendances :
+   ```bash
+   npm install
+   ```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+3. Configurez les variables d'environnement :
+   ```bash
+   cp .env.example .env
+   ```
+   Puis éditez `.env` avec votre token Intercom.
 
-### `npm run build`
+4. Lancez l'application :
+   ```bash
+   npm start
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Configuration Intercom
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Pour connecter l'application à votre compte Intercom :
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Allez dans votre compte Intercom > Settings > Developers > Access tokens
+2. Créez un nouveau token avec les permissions nécessaires
+3. Ajoutez le token dans votre fichier `.env` :
+   ```
+   REACT_APP_INTERCOM_ACCESS_TOKEN=your_token_here
+   ```
 
-### `npm run eject`
+## Authentification
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- **Login** : admin
+- **Mot de passe** : admin123
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Structure du projet
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+```
+src/
+├── components/          # Composants React
+│   ├── Dashboard.tsx    # Dashboard principal
+│   ├── Sidebar.tsx      # Navigation latérale
+│   └── StatCard.tsx     # Cartes de statistiques
+├── data/               # Données mockées
+│   └── mockData.ts     # Données de test
+├── services/           # Services API
+│   └── intercomService.ts # Service Intercom
+├── types/              # Types TypeScript
+│   └── intercom.ts     # Types pour les données Intercom
+└── App.tsx             # Composant principal
+```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## Développement
 
-## Learn More
+L'application utilise actuellement des données mockées pour le développement. Pour utiliser les vraies données Intercom, configurez votre token d'accès dans le fichier `.env`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Prochaines étapes
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- [ ] Implémentation complète de l'API Intercom
+- [ ] Ajout de graphiques et visualisations
+- [ ] Système d'authentification complet
+- [ ] Gestion des erreurs et états de chargement
+- [ ] Tests unitaires
+- [ ] Déploiement
