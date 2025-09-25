@@ -146,7 +146,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Suggestions d'Amélioration Documentation</h3>
             <div className="space-y-3">
-              {data.ai.documentationSuggestions.map((suggestion, index) => (
+              {displayData.ai.documentationSuggestions.map((suggestion, index) => (
                 <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center space-x-3">
@@ -169,8 +169,8 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
                 <span className="font-medium text-blue-900">Impact Potentiel</span>
               </div>
               <p className="text-sm text-blue-800">
-                L'amélioration de ces {data.ai.documentationSuggestions.length} sections pourrait réduire 
-                de {data.ai.documentationSuggestions.reduce((sum, s) => sum + s.frequency, 0)} tickets 
+                L'amélioration de ces {displayData.ai.documentationSuggestions.length} sections pourrait réduire 
+                de {displayData.ai.documentationSuggestions.reduce((sum, s) => sum + s.frequency, 0)} tickets 
                 le nombre de demandes mal documentées par le bot.
               </p>
             </div>
@@ -183,24 +183,24 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
                 <div className="text-3xl mb-2">✅</div>
                 <div className="text-sm text-gray-600">Résolution Automatique</div>
-                <div className="text-xl font-bold text-green-600">{data.ai.finAIOnlyResolution}%</div>
+                <div className="text-xl font-bold text-green-600">{displayData.ai.finAIOnlyResolution}%</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
                 <div className="text-3xl mb-2">🤖</div>
                 <div className="text-sm text-gray-600">Assistance AI</div>
-                <div className="text-xl font-bold text-blue-600">{data.ai.finAIHumanResolution}%</div>
+                <div className="text-xl font-bold text-blue-600">{displayData.ai.finAIHumanResolution}%</div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
                 <div className="text-3xl mb-2">⚡</div>
                 <div className="text-sm text-gray-600">Gain de Temps</div>
                 <div className="text-xl font-bold text-purple-600">
-                  {Math.round((data.ai.finAIOnlyResolution + data.ai.finAIHumanResolution) * 0.7)}%
+                  {Math.round((displayData.ai.finAIOnlyResolution + displayData.ai.finAIHumanResolution) * 0.7)}%
                 </div>
               </div>
               <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
                 <div className="text-3xl mb-2">📚</div>
                 <div className="text-sm text-gray-600">À Améliorer</div>
-                <div className="text-xl font-bold text-orange-600">{data.ai.poorlyDocumentedTickets}</div>
+                <div className="text-xl font-bold text-orange-600">{displayData.ai.poorlyDocumentedTickets}</div>
               </div>
             </div>
           </div>
@@ -268,12 +268,12 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                 <span className="font-medium text-gray-700">Global</span>
                 <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.quality.csat.global}%
+                  {displayData.quality.csat.global}%
                 </span>
               </div>
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-600">Par Agent</h4>
-                {data.quality.csat.byAgent.map((agent, index) => (
+                {displayData.quality.csat.byAgent.map((agent, index) => (
                   <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm text-gray-700">{agent.agentName}</span>
                     <span className={`text-sm font-medium px-2 py-1 rounded ${
@@ -288,7 +288,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               </div>
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-600">Par Pack</h4>
-                {data.quality.csat.byPack.map((pack, index) => (
+                {displayData.quality.csat.byPack.map((pack, index) => (
                   <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm text-gray-700">{pack.packName}</span>
                     <span className="text-sm font-medium text-gray-900">{pack.csat}%</span>
@@ -305,7 +305,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                 <span className="font-medium text-gray-700">Net Promoter Score</span>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.quality.nps}
+                  {displayData.quality.nps}
                 </span>
               </div>
               <div className="space-y-3">
@@ -313,19 +313,19 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
                 <div className="flex justify-between items-center p-2 bg-green-50 rounded-lg">
                   <span className="text-sm text-gray-700">Positif</span>
                   <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm font-medium">
-                    {data.quality.feedbackDistribution.positive}%
+                    {displayData.quality.feedbackDistribution.positive}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                   <span className="text-sm text-gray-700">Neutre</span>
                   <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm font-medium">
-                    {data.quality.feedbackDistribution.neutral}%
+                    {displayData.quality.feedbackDistribution.neutral}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-2 bg-red-50 rounded-lg">
                   <span className="text-sm text-gray-700">Négatif</span>
                   <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm font-medium">
-                    {data.quality.feedbackDistribution.negative}%
+                    {displayData.quality.feedbackDistribution.negative}%
                   </span>
                 </div>
               </div>
@@ -341,20 +341,20 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
                 <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                   <span className="font-medium text-gray-700">Via Appel</span>
                   <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                    {data.quality.csatByChannel.viaCall}%
+                    {displayData.quality.csatByChannel.viaCall}%
                   </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                   <span className="font-medium text-gray-700">Via Écrit</span>
                   <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                    {data.quality.csatByChannel.viaWritten}%
+                    {displayData.quality.csatByChannel.viaWritten}%
                   </span>
                 </div>
               </div>
               <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                 <span className="font-medium text-gray-700">Résolution Day 1</span>
                 <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.quality.day1ResolutionRate}%
+                  {displayData.quality.day1ResolutionRate}%
                 </span>
               </div>
             </div>
@@ -367,12 +367,12 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
                 <span className="font-medium text-gray-700">Taux Réouverture Global</span>
                 <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.quality.reopenRate.global}%
+                  {displayData.quality.reopenRate.global}%
                 </span>
               </div>
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-600">Réouverture par Agent</h4>
-                {data.quality.reopenRate.byAgent.map((agent, index) => (
+                {displayData.quality.reopenRate.byAgent.map((agent, index) => (
                   <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm text-gray-700">{agent.agentName}</span>
                     <span className={`text-sm font-medium px-2 py-1 rounded ${
@@ -388,7 +388,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
                 <span className="font-medium text-gray-700">Sans Aller-Retour</span>
                 <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.quality.noBackAndForthRate}%
+                  {displayData.quality.noBackAndForthRate}%
                 </span>
               </div>
             </div>
@@ -401,26 +401,26 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
                 <div>
                   <span className="block text-sm text-gray-600">Moyenne Équipe</span>
-                  <span className="text-2xl font-bold text-blue-600">{data.quality.teamVsIndividualComparison.teamAverage}%</span>
+                  <span className="text-2xl font-bold text-blue-600">{displayData.quality.teamVsIndividualComparison.teamAverage}%</span>
                 </div>
               </div>
               <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
                 <div>
                   <span className="block text-sm text-gray-600">Top Performer</span>
-                  <span className="text-lg font-semibold text-green-600">{data.quality.teamVsIndividualComparison.topPerformer}</span>
+                  <span className="text-lg font-semibold text-green-600">{displayData.quality.teamVsIndividualComparison.topPerformer}</span>
                 </div>
               </div>
               <div className="flex justify-between items-center p-4 bg-yellow-50 rounded-lg">
                 <div>
                   <span className="block text-sm text-gray-600">Score Top Performer</span>
-                  <span className="text-2xl font-bold text-yellow-600">{data.quality.teamVsIndividualComparison.topPerformerScore}%</span>
+                  <span className="text-2xl font-bold text-yellow-600">{displayData.quality.teamVsIndividualComparison.topPerformerScore}%</span>
                 </div>
               </div>
             </div>
             <div className="mt-4 p-3 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-600 mb-2">Écart avec la moyenne</div>
               <div className="text-lg font-semibold text-green-600">
-                +{(data.quality.teamVsIndividualComparison.topPerformerScore - data.quality.teamVsIndividualComparison.teamAverage).toFixed(1)}%
+                +{(displayData.quality.teamVsIndividualComparison.topPerformerScore - displayData.quality.teamVsIndividualComparison.teamAverage).toFixed(1)}%
               </div>
             </div>
           </div>
@@ -488,12 +488,12 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                 <span className="font-medium text-gray-700">Global</span>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.firstResponseTime.global} min
+                  {displayData.efficiency.firstResponseTime.global} min
                 </span>
               </div>
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-600">Par Pack</h4>
-                {data.efficiency.firstResponseTime.byPack.map((pack, index) => (
+                {displayData.efficiency.firstResponseTime.byPack.map((pack, index) => (
                   <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm text-gray-700">{pack.packName}</span>
                     <span className="text-sm font-medium text-gray-900">{pack.responseTime} min</span>
@@ -502,7 +502,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               </div>
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-600">Par Agent</h4>
-                {data.efficiency.firstResponseTime.byAgent.map((agent, index) => (
+                {displayData.efficiency.firstResponseTime.byAgent.map((agent, index) => (
                   <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm text-gray-700">{agent.agentName}</span>
                     <span className="text-sm font-medium text-gray-900">{agent.responseTime} min</span>
@@ -519,18 +519,18 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                 <span className="font-medium text-gray-700">Global</span>
                 <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.resolutionTime.global}h
+                  {displayData.efficiency.resolutionTime.global}h
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                 <span className="font-medium text-gray-700">Médian</span>
                 <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.resolutionTime.median}h
+                  {displayData.efficiency.resolutionTime.median}h
                 </span>
               </div>
               <div className="space-y-2">
                 <h4 className="text-sm font-medium text-gray-600">Par Pack</h4>
-                {data.efficiency.resolutionTime.byPack.map((pack, index) => (
+                {displayData.efficiency.resolutionTime.byPack.map((pack, index) => (
                   <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded-lg">
                     <span className="text-sm text-gray-700">{pack.packName}</span>
                     <span className="text-sm font-medium text-gray-900">{pack.resolutionTime}h</span>
@@ -547,25 +547,25 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
                 <span className="font-medium text-gray-700">Temps en "Ouvert" (9h-17h)</span>
                 <span className="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.openTimeBusinessHours}h
+                  {displayData.efficiency.openTimeBusinessHours}h
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
                 <span className="font-medium text-gray-700">Taux Auto-close</span>
                 <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.autoCloseRate}%
+                  {displayData.efficiency.autoCloseRate}%
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-indigo-50 rounded-lg">
                 <span className="font-medium text-gray-700">Échanges avant résolution</span>
                 <span className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.averageExchangesBeforeResolution}
+                  {displayData.efficiency.averageExchangesBeforeResolution}
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-yellow-50 rounded-lg">
                 <span className="font-medium text-gray-700">Échanges avant appel</span>
                 <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.averageExchangesBeforeCall}
+                  {displayData.efficiency.averageExchangesBeforeCall}
                 </span>
               </div>
             </div>
@@ -578,19 +578,19 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                 <span className="font-medium text-gray-700">Via Appel</span>
                 <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.resolutionTimeComparison.viaCall}h
+                  {displayData.efficiency.resolutionTimeComparison.viaCall}h
                 </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
                 <span className="font-medium text-gray-700">Via Écrit</span>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
-                  {data.efficiency.resolutionTimeComparison.viaWritten}h
+                  {displayData.efficiency.resolutionTimeComparison.viaWritten}h
                 </span>
               </div>
               <div className="mt-4 p-3 bg-gray-50 rounded-lg">
                 <div className="text-sm text-gray-600 mb-2">Gain de temps via appel</div>
                 <div className="text-lg font-semibold text-green-600">
-                  -{((data.efficiency.resolutionTimeComparison.viaWritten - data.efficiency.resolutionTimeComparison.viaCall) / data.efficiency.resolutionTimeComparison.viaWritten * 100).toFixed(1)}%
+                  -{((displayData.efficiency.resolutionTimeComparison.viaWritten - displayData.efficiency.resolutionTimeComparison.viaCall) / displayData.efficiency.resolutionTimeComparison.viaWritten * 100).toFixed(1)}%
                 </div>
               </div>
             </div>
