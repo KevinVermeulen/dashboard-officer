@@ -37,6 +37,24 @@ export const mockIntercomData: IntercomMetrics = {
     { hour: '17:00', count: 11 },
   ],
   backlogAge: 5.2,
+  postOnboardingVolume: [
+    { period: 'Semaine 1', ticketCount: 23 },
+    { period: 'Semaine 2', ticketCount: 18 },
+    { period: 'Semaine 3', ticketCount: 15 },
+    { period: 'Semaine 4', ticketCount: 12 },
+  ],
+  repeatCustomers: [
+    { customerName: 'TechCorp Solutions', ticketCount: 47, lastTicketDate: '2025-09-24' },
+    { customerName: 'Digital Innovations', ticketCount: 32, lastTicketDate: '2025-09-23' },
+    { customerName: 'CloudFirst Ltd', ticketCount: 28, lastTicketDate: '2025-09-24' },
+    { customerName: 'StartupHub Inc', ticketCount: 24, lastTicketDate: '2025-09-22' },
+    { customerName: 'Enterprise Systems', ticketCount: 21, lastTicketDate: '2025-09-24' },
+    { customerName: 'WebDev Agency', ticketCount: 19, lastTicketDate: '2025-09-23' },
+    { customerName: 'DataFlow Corp', ticketCount: 17, lastTicketDate: '2025-09-21' },
+    { customerName: 'MobileTech Solutions', ticketCount: 15, lastTicketDate: '2025-09-24' },
+    { customerName: 'AI Ventures', ticketCount: 13, lastTicketDate: '2025-09-22' },
+    { customerName: 'SaaS Dynamics', ticketCount: 11, lastTicketDate: '2025-09-23' },
+  ],
   efficiency: {
     firstResponseTime: {
       global: 45, // 45 minutes
@@ -114,6 +132,38 @@ export const mockIntercomData: IntercomMetrics = {
       topPerformer: 'Marie Dubois',
       topPerformerScore: 92.3, // 92.3%
     },
+  },
+  ai: {
+    finAIOnlyResolution: 34.2, // 34.2% of tickets resolved by FIN AI alone
+    finAIHumanResolution: 28.7, // 28.7% of tickets resolved by FIN AI + human
+    poorlyDocumentedTickets: 23, // 23 tickets poorly documented by bot
+    documentationSuggestions: [
+      {
+        topic: 'Configuration API',
+        frequency: 8,
+        suggestedImprovement: 'Ajouter des exemples de code pour les endpoints de configuration'
+      },
+      {
+        topic: 'Gestion des erreurs',
+        frequency: 6,
+        suggestedImprovement: 'Créer une section dédiée aux codes d\'erreur courants'
+      },
+      {
+        topic: 'Authentification OAuth',
+        frequency: 5,
+        suggestedImprovement: 'Détailler le processus d\'authentification avec captures d\'écran'
+      },
+      {
+        topic: 'Webhooks',
+        frequency: 4,
+        suggestedImprovement: 'Ajouter des exemples de payload et de validation'
+      },
+      {
+        topic: 'Limites de taux',
+        frequency: 3,
+        suggestedImprovement: 'Expliquer les stratégies de retry et backoff'
+      },
+    ],
   },
 };
 

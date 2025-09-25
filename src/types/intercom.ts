@@ -9,10 +9,15 @@ export interface IntercomMetrics {
   ticketsByPack: PackTickets[];
   hourlyVolume: HourlyVolume[];
   backlogAge: number;
+  // General additional metrics
+  postOnboardingVolume: PostOnboardingVolume[];
+  repeatCustomers: RepeatCustomer[];
   // Efficiency metrics
   efficiency: EfficiencyMetrics;
   // Quality & Satisfaction metrics
   quality: QualityMetrics;
+  // AI & Automation metrics
+  ai: AIMetrics;
 }
 
 export interface EfficiencyMetrics {
@@ -113,6 +118,30 @@ export interface PackTickets {
 export interface HourlyVolume {
   hour: string;
   count: number;
+}
+
+export interface PostOnboardingVolume {
+  period: string; // e.g., "Semaine 1", "Semaine 2", etc.
+  ticketCount: number;
+}
+
+export interface RepeatCustomer {
+  customerName: string;
+  ticketCount: number;
+  lastTicketDate: string;
+}
+
+export interface AIMetrics {
+  finAIOnlyResolution: number; // percentage of tickets resolved by FIN AI alone
+  finAIHumanResolution: number; // percentage of tickets resolved by FIN AI + human
+  poorlyDocumentedTickets: number; // volume of tickets poorly documented by bot
+  documentationSuggestions: DocumentationSuggestion[];
+}
+
+export interface DocumentationSuggestion {
+  topic: string;
+  frequency: number; // how often this topic appears in poorly documented tickets
+  suggestedImprovement: string;
 }
 
 export interface StatCard {

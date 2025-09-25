@@ -34,6 +34,172 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
     // Here we would normally call an API with the filters
   };
 
+  if (activeSection === 'ai') {
+    return (
+      <div className="flex-1 p-8 bg-gray-50 overflow-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">AI - Automatisation & Self-Service</h1>
+        </div>
+
+        {/* Filters - Same as other sections */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 mb-8 mx-2">
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white transition-colors text-sm font-medium"
+              />
+            </div>
+            <div className="flex flex-col">
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white transition-colors text-sm font-medium"
+              />
+            </div>
+            <div className="flex flex-col">
+              <select
+                value={selectedAgent}
+                onChange={(e) => setSelectedAgent(e.target.value)}
+                className="px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 hover:bg-white transition-colors min-w-[220px] text-sm font-medium"
+              >
+                <option value="">Tous les agents</option>
+                {agents.map((agent, index) => (
+                  <option key={index} value={agent}>
+                    {agent}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={handleSubmit}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-semibold"
+            >
+              Appliquer
+            </button>
+          </div>
+        </div>
+
+        {/* AI Metrics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-2">
+          {/* FIN AI Performance */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Performance FIN AI</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                <div>
+                  <span className="block text-sm text-gray-600">Résolution FIN AI seul</span>
+                  <span className="text-2xl font-bold text-green-600">{data.ai.finAIOnlyResolution}%</span>
+                </div>
+                <div className="text-4xl">🤖</div>
+              </div>
+              <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                <div>
+                  <span className="block text-sm text-gray-600">FIN AI + Humain</span>
+                  <span className="text-2xl font-bold text-blue-600">{data.ai.finAIHumanResolution}%</span>
+                </div>
+                <div className="text-4xl">🤝</div>
+              </div>
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="text-sm text-gray-600 mb-2">Taux d'automatisation total</div>
+                <div className="text-lg font-semibold text-purple-600">
+                  {(data.ai.finAIOnlyResolution + data.ai.finAIHumanResolution).toFixed(1)}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Documentation Issues */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Problèmes de Documentation</h3>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-4 bg-red-50 rounded-lg">
+                <div>
+                  <span className="block text-sm text-gray-600">Tickets mal documentés</span>
+                  <span className="text-2xl font-bold text-red-600">{data.ai.poorlyDocumentedTickets}</span>
+                </div>
+                <div className="text-4xl">📋</div>
+              </div>
+              <div className="p-3 bg-yellow-50 rounded-lg">
+                <div className="text-sm text-gray-600 mb-2">Impact sur l'efficacité</div>
+                <div className="text-sm text-yellow-800">
+                  Ces tickets nécessitent une intervention humaine supplémentaire
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Documentation Suggestions */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Suggestions d'Amélioration Documentation</h3>
+            <div className="space-y-3">
+              {data.ai.documentationSuggestions.map((suggestion, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <span className="font-medium text-gray-900">{suggestion.topic}</span>
+                      <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                        {suggestion.frequency} occurrences
+                      </span>
+                    </div>
+                    <div className="text-2xl">💡</div>
+                  </div>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {suggestion.suggestedImprovement}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="text-xl">📈</div>
+                <span className="font-medium text-blue-900">Impact Potentiel</span>
+              </div>
+              <p className="text-sm text-blue-800">
+                L'amélioration de ces {data.ai.documentationSuggestions.length} sections pourrait réduire 
+                de {data.ai.documentationSuggestions.reduce((sum, s) => sum + s.frequency, 0)} tickets 
+                le nombre de demandes mal documentées par le bot.
+              </p>
+            </div>
+          </div>
+
+          {/* AI Efficiency Metrics */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 lg:col-span-2">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Métriques d'Efficacité AI</h3>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-lg">
+                <div className="text-3xl mb-2">✅</div>
+                <div className="text-sm text-gray-600">Résolution Automatique</div>
+                <div className="text-xl font-bold text-green-600">{data.ai.finAIOnlyResolution}%</div>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg">
+                <div className="text-3xl mb-2">🤖</div>
+                <div className="text-sm text-gray-600">Assistance AI</div>
+                <div className="text-xl font-bold text-blue-600">{data.ai.finAIHumanResolution}%</div>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg">
+                <div className="text-3xl mb-2">⚡</div>
+                <div className="text-sm text-gray-600">Gain de Temps</div>
+                <div className="text-xl font-bold text-purple-600">
+                  {Math.round((data.ai.finAIOnlyResolution + data.ai.finAIHumanResolution) * 0.7)}%
+                </div>
+              </div>
+              <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-lg">
+                <div className="text-3xl mb-2">📚</div>
+                <div className="text-sm text-gray-600">À Améliorer</div>
+                <div className="text-xl font-bold text-orange-600">{data.ai.poorlyDocumentedTickets}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (activeSection === 'quality') {
     return (
       <div className="flex-1 p-8 bg-gray-50 overflow-auto">
@@ -570,6 +736,50 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
                   </div>
                   <span className="text-sm font-medium text-gray-700 w-6">{hour.count}</span>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Volume Post-Onboarding */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Volume 30j Post-Onboarding</h3>
+          <div className="space-y-3">
+            {data.postOnboardingVolume.map((period, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <span className="font-medium text-gray-700">{period.period}</span>
+                <span className="bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-semibold">
+                  {period.ticketCount}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+            <div className="text-sm text-gray-600 mb-1">Total sur 30 jours</div>
+            <div className="text-lg font-semibold text-blue-600">
+              {data.postOnboardingVolume.reduce((sum, period) => sum + period.ticketCount, 0)} tickets
+            </div>
+          </div>
+        </div>
+
+        {/* Repeat Customers */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Repeat Customers (Top 10)</h3>
+          <div className="space-y-3">
+            {data.repeatCustomers.map((customer, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <span className="font-medium text-gray-700 block">{customer.customerName}</span>
+                  <span className="text-xs text-gray-500">Dernier ticket: {new Date(customer.lastTicketDate).toLocaleDateString('fr-FR')}</span>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  customer.ticketCount >= 40 ? 'bg-red-100 text-red-800' :
+                  customer.ticketCount >= 25 ? 'bg-orange-100 text-orange-800' :
+                  customer.ticketCount >= 15 ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-green-100 text-green-800'
+                }`}>
+                  {customer.ticketCount}
+                </span>
               </div>
             ))}
           </div>

@@ -11,6 +11,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange, onLog
     { id: 'general', label: 'Général' },
     { id: 'efficiency', label: 'Efficacité' },
     { id: 'quality', label: 'Qualité - Satisfaction' },
+    { id: 'ai', label: 'AI' },
     // Autres sections à ajouter plus tard
   ];
 
