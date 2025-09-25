@@ -9,6 +9,8 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange, onLogout }) => {
   const menuItems = [
     { id: 'general', label: 'Général' },
+    { id: 'efficiency', label: 'Efficacité' },
+    { id: 'quality', label: 'Qualité - Satisfaction' },
     // Autres sections à ajouter plus tard
   ];
 
@@ -36,7 +38,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange, onLog
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 font-medium ${
                   activeSection === item.id
                     ? 'bg-blue-500 text-white shadow-lg transform scale-105'
-                    : 'text-blue-100 hover:bg-navy-light hover:text-white hover:shadow-md hover:transform hover:scale-102'
+                    : 'bg-blue-600 text-white hover:bg-blue-500 hover:shadow-md hover:transform hover:scale-102'
                 }`}
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">

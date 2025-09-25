@@ -7,15 +7,10 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ stat }) => {
   return (
-    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-gray-600 text-sm font-medium mb-1">{stat.title}</p>
-          <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-        </div>
-        <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
-          <span className="text-white text-xl">{stat.icon}</span>
-        </div>
+    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100 min-w-0">
+      <div className="text-center">
+        <p className="text-gray-600 text-sm font-medium mb-2">{stat.title}</p>
+        <p className="text-xl font-bold text-gray-900">{stat.value}</p>
       </div>
     </div>
   );

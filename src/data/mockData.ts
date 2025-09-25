@@ -37,6 +37,84 @@ export const mockIntercomData: IntercomMetrics = {
     { hour: '17:00', count: 11 },
   ],
   backlogAge: 5.2,
+  efficiency: {
+    firstResponseTime: {
+      global: 45, // 45 minutes
+      byPack: [
+        { packName: 'Pro', responseTime: 52 },
+        { packName: 'Pro+', responseTime: 38 },
+        { packName: 'Expert', responseTime: 35 },
+        { packName: 'Expert+', responseTime: 28 },
+      ],
+      byAgent: [
+        { agentName: 'Marie Dubois', responseTime: 42 },
+        { agentName: 'Jean Martin', responseTime: 48 },
+        { agentName: 'Sophie Laurent', responseTime: 35 },
+        { agentName: 'Pierre Moreau', responseTime: 55 },
+      ],
+    },
+    resolutionTime: {
+      global: 4.2, // 4.2 hours
+      byPack: [
+        { packName: 'Pro', resolutionTime: 5.1 },
+        { packName: 'Pro+', resolutionTime: 3.8 },
+        { packName: 'Expert', resolutionTime: 3.2 },
+        { packName: 'Expert+', resolutionTime: 2.9 },
+      ],
+      median: 3.8, // 3.8 hours
+    },
+    openTimeBusinessHours: 2.3, // 2.3 hours in business hours
+    autoCloseRate: 12.5, // 12.5%
+    averageExchangesBeforeResolution: 3.2,
+    averageExchangesBeforeCall: 5.8,
+    resolutionTimeComparison: {
+      viaCall: 1.8, // 1.8 hours
+      viaWritten: 4.9, // 4.9 hours
+    },
+  },
+  quality: {
+    csat: {
+      global: 87.5, // 87.5%
+      byAgent: [
+        { agentName: 'Marie Dubois', csat: 92.3 },
+        { agentName: 'Jean Martin', csat: 85.7 },
+        { agentName: 'Sophie Laurent', csat: 89.1 },
+        { agentName: 'Pierre Moreau', csat: 83.4 },
+      ],
+      byPack: [
+        { packName: 'Pro', csat: 84.2 },
+        { packName: 'Pro+', csat: 87.8 },
+        { packName: 'Expert', csat: 90.1 },
+        { packName: 'Expert+', csat: 93.5 },
+      ],
+    },
+    nps: 42, // Net Promoter Score
+    feedbackDistribution: {
+      positive: 72.3, // 72.3%
+      negative: 15.2, // 15.2%
+      neutral: 12.5, // 12.5%
+    },
+    csatByChannel: {
+      viaCall: 91.2, // 91.2%
+      viaWritten: 85.8, // 85.8%
+    },
+    day1ResolutionRate: 68.4, // 68.4%
+    reopenRate: {
+      global: 8.7, // 8.7%
+      byAgent: [
+        { agentName: 'Marie Dubois', reopenRate: 6.2 },
+        { agentName: 'Jean Martin', reopenRate: 9.8 },
+        { agentName: 'Sophie Laurent', reopenRate: 7.1 },
+        { agentName: 'Pierre Moreau', reopenRate: 11.5 },
+      ],
+    },
+    noBackAndForthRate: 45.6, // 45.6%
+    teamVsIndividualComparison: {
+      teamAverage: 87.5, // 87.5%
+      topPerformer: 'Marie Dubois',
+      topPerformerScore: 92.3, // 92.3%
+    },
+  },
 };
 
 export const getStatCards = (data: IntercomMetrics): StatCard[] => [
