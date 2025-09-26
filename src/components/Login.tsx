@@ -31,10 +31,14 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
     <div className="min-h-screen bg-dark-bg flex items-center justify-center">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">IO</span>
+          <div className="w-20 h-20 mx-auto mb-4">
+            <img 
+              src="/vertuoza.png" 
+              alt="Vertuoza Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Inter Officer</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Vertuo-Officer</h1>
           <p className="text-gray-600">Connectez-vous pour accéder au dashboard</p>
         </div>
 
@@ -91,10 +95,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Identifiants de test :</p>
-          <p><strong>admin</strong> / <strong>admin123</strong></p>
-        </div>
       </div>
     </div>
   );
