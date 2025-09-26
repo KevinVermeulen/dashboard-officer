@@ -252,29 +252,18 @@ export const useIntercomData = (filters: {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const metrics = await intercomService.getMetrics(filters);
-        setData(metrics);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erreur inconnue');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Mémoriser les filtres pour éviter les re-renders inutiles
+  const memoizedFilters = React.useMemo(() => ({
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    selectedAgent: filters.selectedAgent
+  }), [filters.startDate, filters.endDate, filters.selectedAgent]);
 
-    fetchData();
-  }, [filters.startDate, filters.endDate, filters.selectedAgent, filters]);
-
-  const refetch = async (newFilters?: {
+  const fetchData = React.useCallback(async (filtersToUse: {
     startDate?: string;
     endDate?: string;
     selectedAgent?: string;
   }) => {
-    const filtersToUse = newFilters || filters;
     try {
       setLoading(true);
       const metrics = await intercomService.getMetrics(filtersToUse);
@@ -285,7 +274,20 @@ export const useIntercomData = (filters: {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  React.useEffect(() => {
+    fetchData(memoizedFilters);
+  }, [fetchData, memoizedFilters]);
+
+  const refetch = React.useCallback(async (newFilters?: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  }) => {
+    const filtersToUse = newFilters || memoizedFilters;
+    await fetchData(filtersToUse);
+  }, [fetchData, memoizedFilters]);
 
   return { data, loading, error, refetch };
 };
