@@ -177,6 +177,33 @@ class IntercomService {
     return this.apiCall('/admins');
   }
 
+  // Récupérer les agents filtrés par emails spécifiques
+  async getFilteredAgents(): Promise<Array<{ id: string; name: string; email: string }>> {
+    try {
+      const allowedEmails = ['lola.ricca@vertuoza.com', 'tom@vertuoza.com'];
+      const admins = await this.getAdmins();
+      
+      if (!admins.admins) {
+        console.warn('Aucun admin trouvé dans la réponse API');
+        return [];
+      }
+
+      const filteredAgents = admins.admins
+        .filter((admin: any) => allowedEmails.includes(admin.email))
+        .map((admin: any) => ({
+          id: admin.id,
+          name: admin.name,
+          email: admin.email
+        }));
+
+      console.log('Agents filtrés trouvés:', filteredAgents);
+      return filteredAgents;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des agents filtrés:', error);
+      return [];
+    }
+  }
+
   // Récupérer les statistiques des conversations
   async getConversationStats(params: {
     type: 'admin' | 'user';
@@ -290,6 +317,33 @@ export const useIntercomData = (filters: {
   }, [fetchData, memoizedFilters]);
 
   return { data, loading, error, refetch };
+};
+
+// Hook React pour récupérer les agents filtrés
+export const useFilteredAgents = () => {
+  const [agents, setAgents] = React.useState<Array<{ id: string; name: string; email: string }>>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        setLoading(true);
+        const filteredAgents = await intercomService.getFilteredAgents();
+        setAgents(filteredAgents);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Erreur lors de la récupération des agents');
+        console.error('Erreur lors de la récupération des agents:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgents();
+  }, []);
+
+  return { agents, loading, error };
 };
 
 export default IntercomService;

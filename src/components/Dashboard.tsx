@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import StatCard from './StatCard';
 import { mockIntercomData, getStatCards } from '../data/mockData';
 import { IntercomMetrics } from '../types/intercom';
-import { useIntercomData } from '../services/intercomService';
+import { useIntercomData, useFilteredAgents } from '../services/intercomService';
 
 interface DashboardProps {
   activeSection: string;
@@ -28,15 +28,20 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
     selectedAgent
   });
 
+  // Use the hook to get filtered agents from Intercom API
+  const { agents: filteredAgents, loading: agentsLoading } = useFilteredAgents();
+
   // Fallback to mock data if no real data
   const displayData: IntercomMetrics = data || mockIntercomData;
   const statCards = getStatCards(displayData);
 
-  // Get unique agents from data (filter out 'X' values)
-  const agents = Array.from(new Set([
-    ...displayData.ticketsByAgent.map(agent => agent.agentName),
-    ...displayData.workloadByAgent.map(agent => agent.agentName)
-  ])).filter(agent => agent !== 'X');
+  // Use filtered agents from API, fallback to mock data agents if API fails
+  const agents = filteredAgents.length > 0 
+    ? filteredAgents.map(agent => agent.name)
+    : Array.from(new Set([
+        ...displayData.ticketsByAgent.map(agent => agent.agentName),
+        ...displayData.workloadByAgent.map(agent => agent.agentName)
+      ])).filter(agent => agent !== 'X');
 
   const handleSubmit = async () => {
     console.log('Filters applied:', { startDate, endDate, selectedAgent });
