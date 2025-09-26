@@ -675,9 +675,9 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
 
 
       {/* Stats Cards Grid */}
-      <div className="flex flex-wrap gap-6 mb-12 px-2 space-x-2">
+      <div className="flex flex-wrap gap-4 mb-12 px-2">
         {statCards.map((stat, index) => (
-          <div key={index} className="flex-1 min-w-0" style={{ minWidth: '150px', maxWidth: 'calc(16.666% - 12px)' }}>
+          <div key={index} className="flex-1" style={{ minWidth: '160px', flex: '1 1 calc(20% - 16px)' }}>
             <StatCard stat={stat} />
           </div>
         ))}
@@ -687,9 +687,11 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 px-2" style={{ marginTop: '4rem', paddingTop: '2rem' }}>
         {/* Tickets par Agent */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tickets par Agent (Aujourd'hui)</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tickets par Agent total</h3>
           <div className="space-y-3">
-            {displayData.ticketsByAgent.map((agent, index) => (
+            {displayData.ticketsByAgent
+              .filter(agent => agent.agentName === 'Tom' || agent.agentName === 'Lola')
+              .map((agent, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-700">{agent.agentName}</span>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
@@ -702,9 +704,11 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
 
         {/* Charge de travail par Agent */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Charge de Travail (Tickets Actifs)</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tickets actifs par agent</h3>
           <div className="space-y-3">
-            {displayData.workloadByAgent.map((agent, index) => (
+            {displayData.workloadByAgent
+              .filter(agent => agent.agentName === 'Tom' || agent.agentName === 'Lola')
+              .map((agent, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <span className="font-medium text-gray-700">{agent.agentName}</span>
                 <span className={`px-3 py-1 rounded-full text-sm font-semibold ${

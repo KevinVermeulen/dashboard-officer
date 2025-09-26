@@ -6,16 +6,12 @@ export const mockIntercomData: IntercomMetrics = {
   closedTickets: 'X' as any,
   reopenedTickets: 'X' as any,
   ticketsByAgent: [
-    { agentName: 'X', ticketsToday: 'X' as any },
-    { agentName: 'X', ticketsToday: 'X' as any },
-    { agentName: 'X', ticketsToday: 'X' as any },
-    { agentName: 'X', ticketsToday: 'X' as any },
+    { agentName: 'Tom', ticketsToday: 'X' as any },
+    { agentName: 'Lola', ticketsToday: 'X' as any },
   ],
   workloadByAgent: [
-    { agentName: 'X', activeTickets: 'X' as any },
-    { agentName: 'X', activeTickets: 'X' as any },
-    { agentName: 'X', activeTickets: 'X' as any },
-    { agentName: 'X', activeTickets: 'X' as any },
+    { agentName: 'Tom', activeTickets: 'X' as any },
+    { agentName: 'Lola', activeTickets: 'X' as any },
   ],
   jiraTransferPercentage: 'X' as any,
   ticketsByPack: [
@@ -203,11 +199,12 @@ export const getStatCards = (data: IntercomMetrics): StatCard[] => [
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-500',
   },
-  {
-    title: 'Âge Backlog',
-    value: `${data.backlogAge}j`,
-    icon: '⏰',
-    color: 'text-red-600',
-    bgColor: 'bg-red-500',
-  },
+  // Âge Backlog temporairement caché
+  // {
+  //   title: 'Âge Backlog',
+  //   value: `${data.backlogAge}j`,
+  //   icon: '⏰',
+  //   color: 'text-red-600',
+  //   bgColor: 'bg-red-500',
+  // },
 ];
