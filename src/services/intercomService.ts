@@ -704,8 +704,9 @@ export const useIntercomData = (filters: {
   selectedAgent?: string;
 } = {}) => {
   const [data, setData] = React.useState<IntercomMetrics | null>(mockIntercomData);
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [hasInitialLoad, setHasInitialLoad] = React.useState(false);
 
   const fetchData = React.useCallback(async (filtersToUse: {
     startDate?: string;
@@ -724,6 +725,15 @@ export const useIntercomData = (filters: {
       setLoading(false);
     }
   }, []);
+
+  // Chargement initial unique au premier rendu
+  React.useEffect(() => {
+    if (!hasInitialLoad) {
+      console.log('Initial data load on component mount');
+      fetchData(filters);
+      setHasInitialLoad(true);
+    }
+  }, [fetchData, filters, hasInitialLoad]);
 
   const refetch = React.useCallback(async (newFilters?: {
     startDate?: string;
