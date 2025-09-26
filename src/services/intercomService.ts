@@ -316,6 +316,94 @@ class IntercomService {
     }
   }
 
+  // Version optimisée - Récupérer le nombre de conversations réouvertes avec filtres de date ET d'agent
+  private async getReopenedConversationsCountOptimized(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  }, selectedAdminId: string | null): Promise<number> {
+    try {
+      // TOUJOURS filtrer par date - utiliser les dates fournies ou par défaut
+      const startDate = filters.startDate || (() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      })();
+      
+      const endDate = filters.endDate || startDate;
+
+      console.log('Filtrage tickets réouverts avec POST /conversations/search (optimisé):', {
+        startDate,
+        endDate,
+        selectedAgent: filters.selectedAgent,
+        selectedAdminId
+      });
+
+      // Convertir les dates en timestamps Unix
+      const startTimestamp = this.dateToTimestamp(startDate);
+      const endTimestamp = this.dateToTimestamp(endDate + 'T23:59:59.999Z');
+
+      // Construire le body de recherche avec les filtres de date
+      // On récupère toutes les conversations de la période pour analyser count_reopens
+      const searchBody = {
+        query: {
+          operator: "AND",
+          value: [
+            {
+              field: "created_at",
+              operator: ">=",
+              value: startTimestamp
+            },
+            {
+              field: "created_at",
+              operator: "<=",
+              value: endTimestamp
+            }
+          ]
+        }
+      };
+
+      // Gestion du filtre par agent : soit ID spécifique soit pas de filtre
+      if (filters.selectedAgent && selectedAdminId) {
+        searchBody.query.value.push({
+          field: "admin_assignee_id",
+          operator: "=",
+          value: parseInt(selectedAdminId, 10)
+        });
+        console.log(`Ajout du filtre agent pour tickets réouverts (optimisé): ID ${selectedAdminId}`);
+      }
+
+      console.log('Body de recherche pour tickets réouverts (optimisé):', JSON.stringify(searchBody, null, 2));
+
+      // Utiliser l'API de recherche POST /conversations/search
+      const response = await this.searchConversations(searchBody);
+      const conversations = response.conversations || [];
+
+      console.log('Réponse API complète (tickets réouverts):', {
+        total_count: response.total_count,
+        per_page: response.per_page,
+        conversations_length: conversations.length
+      });
+
+      // Compter les conversations avec count_reopens > 0
+      let reopenedCount = 0;
+      conversations.forEach((conversation: any) => {
+        const countReopens = conversation.statistics?.count_reopens || 0;
+        if (countReopens > 0) {
+          reopenedCount++;
+          console.log(`Conversation ${conversation.id} réouverte ${countReopens} fois`);
+        }
+      });
+
+      console.log(`Tickets réouverts trouvés via search API (optimisé): ${reopenedCount} sur ${conversations.length} conversations`);
+      return reopenedCount;
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des tickets réouverts (optimisé):', error);
+      return 0;
+    }
+  }
+
   // Récupérer le nombre de nouvelles conversations créées entre deux dates
   async getNewConversationsCount(filters: {
     startDate?: string;
@@ -643,16 +731,18 @@ class IntercomService {
       }
 
       // Récupérer les données réelles de l'API avec filtres de date et d'état
-      const [openConversationsCount, newConversationsCount, closedConversationsCount] = await Promise.all([
+      const [openConversationsCount, newConversationsCount, closedConversationsCount, reopenedConversationsCount] = await Promise.all([
         this.getOpenConversationsCountOptimized(filters, selectedAdminId),
         this.getNewConversationsCountOptimized(filters, selectedAdminId),
-        this.getClosedConversationsCountOptimized(filters, selectedAdminId)
+        this.getClosedConversationsCountOptimized(filters, selectedAdminId),
+        this.getReopenedConversationsCountOptimized(filters, selectedAdminId)
       ]);
       
       console.log('Métriques récupérées:', {
         openTickets: openConversationsCount,
         newTickets: newConversationsCount,
         closedTickets: closedConversationsCount,
+        reopenedTickets: reopenedConversationsCount,
         filters
       });
       
@@ -662,7 +752,8 @@ class IntercomService {
         ...mockIntercomData,
         openTickets: openConversationsCount,
         newTickets: newConversationsCount,
-        closedTickets: closedConversationsCount
+        closedTickets: closedConversationsCount,
+        reopenedTickets: reopenedConversationsCount
       };
 
       return realMetrics;
