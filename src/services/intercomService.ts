@@ -707,7 +707,7 @@ export const useIntercomData = (filters: {
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Mémoriser les filtres pour éviter les re-renders inutiles
+  // Mémoriser les filtres individuellement pour éviter les re-renders inutiles
   const memoizedFilters = React.useMemo(() => {
     console.log('Filters changed:', filters);
     return {
@@ -715,7 +715,7 @@ export const useIntercomData = (filters: {
       endDate: filters.endDate,
       selectedAgent: filters.selectedAgent
     };
-  }, [filters]);
+  }, [filters.startDate, filters.endDate, filters.selectedAgent]);
 
   const fetchData = React.useCallback(async (filtersToUse: {
     startDate?: string;
