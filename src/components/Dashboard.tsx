@@ -22,7 +22,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
   const [selectedAgent, setSelectedAgent] = useState('');
   
   // Use the hook to get real data with filters
-  const { data, loading, error, refetch } = useIntercomData({
+  const { data, loading, refetch } = useIntercomData({
     startDate,
     endDate,
     selectedAgent

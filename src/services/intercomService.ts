@@ -267,7 +267,7 @@ export const useIntercomData = (filters: {
     };
 
     fetchData();
-  }, [filters.startDate, filters.endDate, filters.selectedAgent]);
+  }, [filters.startDate, filters.endDate, filters.selectedAgent, filters]);
 
   const refetch = async (newFilters?: {
     startDate?: string;
