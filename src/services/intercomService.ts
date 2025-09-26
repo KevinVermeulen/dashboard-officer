@@ -715,6 +715,7 @@ export const useIntercomData = (filters: {
       endDate: filters.endDate,
       selectedAgent: filters.selectedAgent
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.startDate, filters.endDate, filters.selectedAgent]);
 
   const fetchData = React.useCallback(async (filtersToUse: {
