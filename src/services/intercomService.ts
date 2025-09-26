@@ -715,7 +715,7 @@ export const useIntercomData = (filters: {
       endDate: filters.endDate,
       selectedAgent: filters.selectedAgent
     };
-  }, [filters.startDate, filters.endDate, filters.selectedAgent]);
+  }, [filters, filters.startDate, filters.endDate, filters.selectedAgent]);
 
   const fetchData = React.useCallback(async (filtersToUse: {
     startDate?: string;

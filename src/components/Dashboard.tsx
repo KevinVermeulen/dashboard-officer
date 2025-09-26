@@ -29,7 +29,7 @@ const Dashboard: React.FC<DashboardProps> = ({ activeSection }) => {
   });
 
   // Use the hook to get filtered agents from Intercom API
-  const { agents: filteredAgents, loading: agentsLoading } = useFilteredAgents();
+  const { agents: filteredAgents } = useFilteredAgents();
 
   // Fallback to mock data if no real data
   const displayData: IntercomMetrics = data || mockIntercomData;
