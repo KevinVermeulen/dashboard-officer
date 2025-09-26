@@ -60,6 +60,262 @@ class IntercomService {
     return this.apiCall(`/conversations?${queryParams.toString()}`);
   }
 
+  // Rechercher les conversations avec filtres avancés (utilise l'API Search)
+  async searchConversations(searchBody: any) {
+    return this.apiCall('/conversations/search', {
+      method: 'POST',
+      body: JSON.stringify(searchBody)
+    });
+  }
+
+  // Convertir une date string en timestamp Unix
+  private dateToTimestamp(dateString: string): number {
+    return Math.floor(new Date(dateString).getTime() / 1000);
+  }
+
+  // Version optimisée - Récupérer le nombre de nouvelles conversations créées entre deux dates
+  private async getNewConversationsCountOptimized(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  }, selectedAdminId: string | null): Promise<number> {
+    try {
+      // TOUJOURS ajouter les filtres de date - utiliser les dates fournies ou par défaut
+      const startDate = filters.startDate || (() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      })();
+      
+      const endDate = filters.endDate || startDate;
+
+      console.log('Filtrage nouveaux tickets avec POST /conversations/search (optimisé):', {
+        startDate,
+        endDate,
+        selectedAgent: filters.selectedAgent,
+        selectedAdminId
+      });
+
+      // Convertir les dates en timestamps Unix
+      const startTimestamp = this.dateToTimestamp(startDate);
+      const endTimestamp = this.dateToTimestamp(endDate + 'T23:59:59.999Z');
+
+      // Construire le body de recherche avec les filtres de date
+      const searchBody = {
+        query: {
+          operator: "AND",
+          value: [
+            {
+              field: "created_at",
+              operator: ">=",
+              value: startTimestamp
+            },
+            {
+              field: "created_at",
+              operator: "<=",
+              value: endTimestamp
+            }
+          ]
+        }
+      };
+
+      // Gestion du filtre par agent : soit ID spécifique soit pas de filtre
+      if (filters.selectedAgent && selectedAdminId) {
+        searchBody.query.value.push({
+          field: "admin_assignee_id",
+          operator: "=",
+          value: parseInt(selectedAdminId, 10)
+        });
+        console.log(`Ajout du filtre agent (optimisé): ID ${selectedAdminId}`);
+      }
+      // Si aucun agent sélectionné, on ne filtre pas par admin_assignee_id
+
+      console.log('Body de recherche (nouveaux tickets):', JSON.stringify(searchBody, null, 2));
+
+      // Utiliser l'API de recherche POST /conversations/search
+      const response = await this.searchConversations(searchBody);
+      const totalCount = response.total_count || 0;
+
+      console.log('Réponse API complète (nouveaux tickets):', {
+        total_count: response.total_count,
+        per_page: response.per_page,
+        conversations_length: response.conversations?.length || 0
+      });
+      console.log(`Nouveaux tickets trouvés via search API (optimisé): ${totalCount} (total_count)`);
+      return totalCount;
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des nouvelles conversations (optimisé):', error);
+      return 0;
+    }
+  }
+
+  // Version optimisée - Récupérer le nombre de conversations ouvertes avec filtres de date ET d'état
+  private async getOpenConversationsCountOptimized(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  }, selectedAdminId: string | null): Promise<number> {
+    try {
+      // TOUJOURS filtrer par date - utiliser les dates fournies ou par défaut
+      const startDate = filters.startDate || (() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      })();
+      
+      const endDate = filters.endDate || startDate;
+
+      console.log('Filtrage tickets ouverts avec POST /conversations/search (optimisé):', {
+        startDate,
+        endDate,
+        selectedAgent: filters.selectedAgent,
+        selectedAdminId
+      });
+
+      // Convertir les dates en timestamps Unix
+      const startTimestamp = this.dateToTimestamp(startDate);
+      const endTimestamp = this.dateToTimestamp(endDate + 'T23:59:59.999Z');
+
+      // Construire le body de recherche avec les filtres de date ET d'état (open + snoozed + pending)
+      const searchBody = {
+        query: {
+          operator: "AND",
+          value: [
+            {
+              field: "created_at",
+              operator: ">=",
+              value: startTimestamp
+            },
+            {
+              field: "created_at",
+              operator: "<=",
+              value: endTimestamp
+            },
+            {
+              field: "state",
+              operator: "IN",
+              value: ["open", "snoozed", "pending"]
+            }
+          ]
+        }
+      };
+
+      // Gestion du filtre par agent : soit ID spécifique soit pas de filtre
+      if (filters.selectedAgent && selectedAdminId) {
+        // Agent spécifique sélectionné
+        searchBody.query.value.push({
+          field: "admin_assignee_id",
+          operator: "=",
+          value: parseInt(selectedAdminId, 10)
+        });
+        console.log(`Ajout du filtre agent pour tickets ouverts (optimisé): ID ${selectedAdminId}`);
+      }
+      // Si aucun agent sélectionné, on ne filtre pas par admin_assignee_id
+      // Cela récupérera tous les tickets (assignés et non assignés)
+
+      console.log('Body de recherche pour tickets ouverts (optimisé):', JSON.stringify(searchBody, null, 2));
+
+      // Utiliser l'API de recherche POST /conversations/search
+      const response = await this.searchConversations(searchBody);
+      const totalCount = response.total_count || 0;
+
+      console.log('Réponse API complète (tickets ouverts):', {
+        total_count: response.total_count,
+        per_page: response.per_page,
+        conversations_length: response.conversations?.length || 0
+      });
+      console.log(`Tickets ouverts trouvés via search API (optimisé): ${totalCount} (total_count)`);
+      return totalCount;
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des tickets ouverts (optimisé):', error);
+      return 0;
+    }
+  }
+
+  // Version optimisée - Récupérer le nombre de conversations fermées avec filtres de date ET d'état
+  private async getClosedConversationsCountOptimized(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  }, selectedAdminId: string | null): Promise<number> {
+    try {
+      // TOUJOURS filtrer par date - utiliser les dates fournies ou par défaut
+      const startDate = filters.startDate || (() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      })();
+      
+      const endDate = filters.endDate || startDate;
+
+      console.log('Filtrage tickets fermés avec POST /conversations/search (optimisé):', {
+        startDate,
+        endDate,
+        selectedAgent: filters.selectedAgent,
+        selectedAdminId
+      });
+
+      // Convertir les dates en timestamps Unix
+      const startTimestamp = this.dateToTimestamp(startDate);
+      const endTimestamp = this.dateToTimestamp(endDate + 'T23:59:59.999Z');
+
+      // Construire le body de recherche avec les filtres de date ET d'état
+      const searchBody = {
+        query: {
+          operator: "AND",
+          value: [
+            {
+              field: "created_at",
+              operator: ">=",
+              value: startTimestamp
+            },
+            {
+              field: "created_at",
+              operator: "<=",
+              value: endTimestamp
+            },
+            {
+              field: "state",
+              operator: "=",
+              value: "closed"
+            }
+          ]
+        }
+      };
+
+      // Gestion du filtre par agent : soit ID spécifique soit pas de filtre
+      if (filters.selectedAgent && selectedAdminId) {
+        searchBody.query.value.push({
+          field: "admin_assignee_id",
+          operator: "=",
+          value: parseInt(selectedAdminId, 10)
+        });
+        console.log(`Ajout du filtre agent pour tickets fermés (optimisé): ID ${selectedAdminId}`);
+      }
+      // Si aucun agent sélectionné, on ne filtre pas par admin_assignee_id
+
+      console.log('Body de recherche pour tickets fermés (optimisé):', JSON.stringify(searchBody, null, 2));
+
+      // Utiliser l'API de recherche POST /conversations/search
+      const response = await this.searchConversations(searchBody);
+      const totalCount = response.total_count || 0;
+
+      console.log('Réponse API complète (tickets fermés):', {
+        total_count: response.total_count,
+        per_page: response.per_page,
+        conversations_length: response.conversations?.length || 0
+      });
+      console.log(`Tickets fermés trouvés via search API (optimisé): ${totalCount} (total_count)`);
+      return totalCount;
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des tickets fermés (optimisé):', error);
+      return 0;
+    }
+  }
+
   // Récupérer le nombre de nouvelles conversations créées entre deux dates
   async getNewConversationsCount(filters: {
     startDate?: string;
@@ -67,107 +323,257 @@ class IntercomService {
     selectedAgent?: string;
   } = {}): Promise<number> {
     try {
-      const params: any = {
-        per_page: 1 // On ne récupère qu'une conversation pour avoir le total_count
+      // TOUJOURS ajouter les filtres de date - utiliser les dates fournies ou par défaut
+      const startDate = filters.startDate || (() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      })();
+      
+      const endDate = filters.endDate || startDate;
+
+      console.log('Filtrage nouveaux tickets avec POST /conversations/search:', {
+        startDate,
+        endDate,
+        selectedAgent: filters.selectedAgent
+      });
+
+      // Convertir les dates en timestamps Unix
+      const startTimestamp = this.dateToTimestamp(startDate);
+      const endTimestamp = this.dateToTimestamp(endDate + 'T23:59:59.999Z');
+
+      console.log('Timestamps utilisés:', {
+        startTimestamp,
+        endTimestamp,
+        startDateReadable: new Date(startTimestamp * 1000).toISOString(),
+        endDateReadable: new Date(endTimestamp * 1000).toISOString()
+      });
+
+      // Construire le body de recherche avec les filtres de date
+      const searchBody = {
+        query: {
+          operator: "AND",
+          value: [
+            {
+              field: "created_at",
+              operator: ">=",
+              value: startTimestamp
+            },
+            {
+              field: "created_at",
+              operator: "<=",
+              value: endTimestamp
+            }
+          ]
+        }
       };
 
-      // Ajouter les filtres de date si fournis
-      if (filters.startDate) {
-        params.created_at_after = Math.floor(new Date(filters.startDate).getTime() / 1000);
-      }
-      if (filters.endDate) {
-        // Ajouter 24h pour inclure toute la journée de fin
-        const endDate = new Date(filters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        params.created_at_before = Math.floor(endDate.getTime() / 1000);
-      }
-
-      const response = await this.getConversations(params);
-      
-      // Si pas de filtre par agent, on peut utiliser directement total_count
-      if (!filters.selectedAgent || filters.selectedAgent === '') {
-        return response.total_count || 0;
-      }
-
-      // Si filtre par agent, on doit récupérer toutes les conversations pour filtrer
-      const allParams = { ...params };
-      delete allParams.per_page;
-      
-      const allResponse = await this.getConversations(allParams);
-      let conversations = allResponse.conversations || [];
-
-      // Récupérer les admins pour faire le mapping nom -> ID
-      const admins = await this.getAdmins();
-      const selectedAdmin = admins.admins?.find((admin: any) => 
-        admin.name === filters.selectedAgent
-      );
-      
-      if (selectedAdmin) {
-        conversations = conversations.filter((conv: any) => 
-          conv.assignee?.id === selectedAdmin.id
+      // Ajouter le filtre par agent si spécifié
+      if (filters.selectedAgent) {
+        const admins = await this.getAdmins();
+        const selectedAdmin = admins.admins?.find((admin: any) => 
+          admin.name === filters.selectedAgent
         );
+        
+        if (selectedAdmin) {
+          searchBody.query.value.push({
+            field: "assignee_id",
+            operator: "=",
+            value: selectedAdmin.id
+          });
+          console.log(`Ajout du filtre agent: ${selectedAdmin.name} (ID: ${selectedAdmin.id})`);
+        }
       }
 
+      console.log('Body de recherche:', JSON.stringify(searchBody, null, 2));
+
+      // Utiliser l'API de recherche POST /conversations/search
+      const response = await this.searchConversations(searchBody);
+      const conversations = response.conversations || [];
+
+      console.log(`Nouveaux tickets trouvés via search API: ${conversations.length}`);
       return conversations.length;
+
     } catch (error) {
       console.error('Erreur lors de la récupération des nouvelles conversations:', error);
       return 0;
     }
   }
 
-  // Récupérer le nombre de conversations ouvertes avec filtres
+  // Récupérer le nombre de conversations ouvertes avec filtres de date ET d'état
   async getOpenConversationsCount(filters: {
     startDate?: string;
     endDate?: string;
     selectedAgent?: string;
   } = {}): Promise<number> {
     try {
-      const params: any = {
-        state: 'open',
-        per_page: 1 // On ne récupère qu'une conversation pour avoir le total_count
+      // TOUJOURS filtrer par date - utiliser les dates fournies ou par défaut
+      const startDate = filters.startDate || (() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      })();
+      
+      const endDate = filters.endDate || startDate;
+
+      console.log('Filtrage tickets ouverts avec POST /conversations/search:', {
+        startDate,
+        endDate,
+        selectedAgent: filters.selectedAgent
+      });
+
+      // Convertir les dates en timestamps Unix
+      const startTimestamp = this.dateToTimestamp(startDate);
+      const endTimestamp = this.dateToTimestamp(endDate + 'T23:59:59.999Z');
+
+      console.log('Timestamps utilisés pour tickets ouverts:', {
+        startTimestamp,
+        endTimestamp,
+        startDateReadable: new Date(startTimestamp * 1000).toISOString(),
+        endDateReadable: new Date(endTimestamp * 1000).toISOString()
+      });
+
+      // Construire le body de recherche avec les filtres de date ET d'état
+      const searchBody = {
+        query: {
+          operator: "AND",
+          value: [
+            {
+              field: "created_at",
+              operator: ">=",
+              value: startTimestamp
+            },
+            {
+              field: "created_at",
+              operator: "<=",
+              value: endTimestamp
+            },
+            {
+              field: "state",
+              operator: "=",
+              value: "open"
+            }
+          ]
+        }
       };
 
-      // Ajouter les filtres de date si fournis
-      if (filters.startDate) {
-        params.created_at_after = Math.floor(new Date(filters.startDate).getTime() / 1000);
-      }
-      if (filters.endDate) {
-        // Ajouter 24h pour inclure toute la journée de fin
-        const endDate = new Date(filters.endDate);
-        endDate.setHours(23, 59, 59, 999);
-        params.created_at_before = Math.floor(endDate.getTime() / 1000);
-      }
-
-      const response = await this.getConversations(params);
-      
-      // Si pas de filtre par agent, on peut utiliser directement total_count
-      if (!filters.selectedAgent || filters.selectedAgent === '') {
-        return response.total_count || 0;
-      }
-
-      // Si filtre par agent, on doit récupérer toutes les conversations pour filtrer
-      // (limitation de l'API Intercom qui ne permet pas de filtrer par assignee directement)
-      const allParams = { ...params };
-      delete allParams.per_page; // Récupérer toutes les conversations
-      
-      const allResponse = await this.getConversations(allParams);
-      let conversations = allResponse.conversations || [];
-
-      // Récupérer les admins pour faire le mapping nom -> ID
-      const admins = await this.getAdmins();
-      const selectedAdmin = admins.admins?.find((admin: any) => 
-        admin.name === filters.selectedAgent
-      );
-      
-      if (selectedAdmin) {
-        conversations = conversations.filter((conv: any) => 
-          conv.assignee?.id === selectedAdmin.id
+      // Ajouter le filtre par agent si spécifié
+      if (filters.selectedAgent) {
+        const admins = await this.getAdmins();
+        const selectedAdmin = admins.admins?.find((admin: any) => 
+          admin.name === filters.selectedAgent
         );
+        
+        if (selectedAdmin) {
+          searchBody.query.value.push({
+            field: "assignee_id",
+            operator: "=",
+            value: selectedAdmin.id
+          });
+          console.log(`Ajout du filtre agent pour tickets ouverts: ${selectedAdmin.name} (ID: ${selectedAdmin.id})`);
+        }
       }
 
+      console.log('Body de recherche pour tickets ouverts:', JSON.stringify(searchBody, null, 2));
+
+      // Utiliser l'API de recherche POST /conversations/search
+      const response = await this.searchConversations(searchBody);
+      const conversations = response.conversations || [];
+
+      console.log(`Tickets ouverts trouvés via search API: ${conversations.length}`);
       return conversations.length;
+
     } catch (error) {
-      console.error('Erreur lors de la récupération des conversations ouvertes:', error);
+      console.error('Erreur lors de la récupération des tickets ouverts:', error);
+      return 0;
+    }
+  }
+
+  // Récupérer le nombre de conversations fermées avec filtres de date ET d'état
+  async getClosedConversationsCount(filters: {
+    startDate?: string;
+    endDate?: string;
+    selectedAgent?: string;
+  } = {}): Promise<number> {
+    try {
+      // TOUJOURS filtrer par date - utiliser les dates fournies ou par défaut
+      const startDate = filters.startDate || (() => {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        return yesterday.toISOString().split('T')[0];
+      })();
+      
+      const endDate = filters.endDate || startDate;
+
+      console.log('Filtrage tickets fermés avec POST /conversations/search:', {
+        startDate,
+        endDate,
+        selectedAgent: filters.selectedAgent
+      });
+
+      // Convertir les dates en timestamps Unix
+      const startTimestamp = this.dateToTimestamp(startDate);
+      const endTimestamp = this.dateToTimestamp(endDate + 'T23:59:59.999Z');
+
+      console.log('Timestamps utilisés pour tickets fermés:', {
+        startTimestamp,
+        endTimestamp,
+        startDateReadable: new Date(startTimestamp * 1000).toISOString(),
+        endDateReadable: new Date(endTimestamp * 1000).toISOString()
+      });
+
+      // Construire le body de recherche avec les filtres de date ET d'état
+      const searchBody = {
+        query: {
+          operator: "AND",
+          value: [
+            {
+              field: "created_at",
+              operator: ">=",
+              value: startTimestamp
+            },
+            {
+              field: "created_at",
+              operator: "<=",
+              value: endTimestamp
+            },
+            {
+              field: "state",
+              operator: "=",
+              value: "closed"
+            }
+          ]
+        }
+      };
+
+      // Ajouter le filtre par agent si spécifié
+      if (filters.selectedAgent) {
+        const admins = await this.getAdmins();
+        const selectedAdmin = admins.admins?.find((admin: any) => 
+          admin.name === filters.selectedAgent
+        );
+        
+        if (selectedAdmin) {
+          searchBody.query.value.push({
+            field: "assignee_id",
+            operator: "=",
+            value: selectedAdmin.id
+          });
+          console.log(`Ajout du filtre agent pour tickets fermés: ${selectedAdmin.name} (ID: ${selectedAdmin.id})`);
+        }
+      }
+
+      console.log('Body de recherche pour tickets fermés:', JSON.stringify(searchBody, null, 2));
+
+      // Utiliser l'API de recherche POST /conversations/search
+      const response = await this.searchConversations(searchBody);
+      const conversations = response.conversations || [];
+
+      console.log(`Tickets fermés trouvés via search API: ${conversations.length}`);
+      return conversations.length;
+
+    } catch (error) {
+      console.error('Erreur lors de la récupération des tickets fermés:', error);
       return 0;
     }
   }
@@ -225,16 +631,38 @@ class IntercomService {
     selectedAgent?: string;
   } = {}): Promise<IntercomMetrics> {
     try {
-      // Récupérer les données réelles de l'API
-      const openConversationsCount = await this.getOpenConversationsCount(filters);
-      const newConversationsCount = await this.getNewConversationsCount(filters);
+      // Récupérer l'admin une seule fois si un agent est sélectionné
+      let selectedAdminId: string | null = null;
+      if (filters.selectedAgent) {
+        const admins = await this.getAdmins();
+        const selectedAdmin = admins.admins?.find((admin: any) => 
+          admin.name === filters.selectedAgent
+        );
+        selectedAdminId = selectedAdmin?.id || null;
+        console.log(`Agent sélectionné: ${filters.selectedAgent} (ID: ${selectedAdminId})`);
+      }
+
+      // Récupérer les données réelles de l'API avec filtres de date et d'état
+      const [openConversationsCount, newConversationsCount, closedConversationsCount] = await Promise.all([
+        this.getOpenConversationsCountOptimized(filters, selectedAdminId),
+        this.getNewConversationsCountOptimized(filters, selectedAdminId),
+        this.getClosedConversationsCountOptimized(filters, selectedAdminId)
+      ]);
+      
+      console.log('Métriques récupérées:', {
+        openTickets: openConversationsCount,
+        newTickets: newConversationsCount,
+        closedTickets: closedConversationsCount,
+        filters
+      });
       
       // Pour les autres métriques, on garde les données mockées pour l'instant
       // et on remplace les données réelles
       const realMetrics: IntercomMetrics = {
         ...mockIntercomData,
         openTickets: openConversationsCount,
-        newTickets: newConversationsCount
+        newTickets: newConversationsCount,
+        closedTickets: closedConversationsCount
       };
 
       return realMetrics;
@@ -280,11 +708,14 @@ export const useIntercomData = (filters: {
   const [error, setError] = React.useState<string | null>(null);
 
   // Mémoriser les filtres pour éviter les re-renders inutiles
-  const memoizedFilters = React.useMemo(() => ({
-    startDate: filters.startDate,
-    endDate: filters.endDate,
-    selectedAgent: filters.selectedAgent
-  }), [filters.startDate, filters.endDate, filters.selectedAgent]);
+  const memoizedFilters = React.useMemo(() => {
+    console.log('Filters changed:', filters);
+    return {
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      selectedAgent: filters.selectedAgent
+    };
+  }, [filters.startDate, filters.endDate, filters.selectedAgent]);
 
   const fetchData = React.useCallback(async (filtersToUse: {
     startDate?: string;
