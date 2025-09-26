@@ -1,5 +1,5 @@
 # Utiliser une image Node.js officielle comme base
-FROM node:18-alpine AS builder
+FROM node:18 AS builder
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -17,7 +17,7 @@ COPY . .
 RUN npm run build
 
 # Étape de production avec Nginx
-FROM nginx:alpine
+FROM nginx:stable
 
 # Copier les fichiers construits depuis l'étape builder
 COPY --from=builder /app/build /usr/share/nginx/html
