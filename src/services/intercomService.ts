@@ -703,20 +703,9 @@ export const useIntercomData = (filters: {
   endDate?: string;
   selectedAgent?: string;
 } = {}) => {
-  const [data, setData] = React.useState<IntercomMetrics | null>(null);
-  const [loading, setLoading] = React.useState(true);
+  const [data, setData] = React.useState<IntercomMetrics | null>(mockIntercomData);
+  const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-
-  // Mémoriser les filtres individuellement pour éviter les re-renders inutiles
-  const memoizedFilters = React.useMemo(() => {
-    console.log('Filters changed:', filters);
-    return {
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      selectedAgent: filters.selectedAgent
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.startDate, filters.endDate, filters.selectedAgent]);
 
   const fetchData = React.useCallback(async (filtersToUse: {
     startDate?: string;
@@ -725,6 +714,7 @@ export const useIntercomData = (filters: {
   }) => {
     try {
       setLoading(true);
+      console.log('Fetching data with filters:', filtersToUse);
       const metrics = await intercomService.getMetrics(filtersToUse);
       setData(metrics);
       setError(null);
@@ -735,18 +725,14 @@ export const useIntercomData = (filters: {
     }
   }, []);
 
-  React.useEffect(() => {
-    fetchData(memoizedFilters);
-  }, [fetchData, memoizedFilters]);
-
   const refetch = React.useCallback(async (newFilters?: {
     startDate?: string;
     endDate?: string;
     selectedAgent?: string;
   }) => {
-    const filtersToUse = newFilters || memoizedFilters;
+    const filtersToUse = newFilters || filters;
     await fetchData(filtersToUse);
-  }, [fetchData, memoizedFilters]);
+  }, [fetchData, filters]);
 
   return { data, loading, error, refetch };
 };
